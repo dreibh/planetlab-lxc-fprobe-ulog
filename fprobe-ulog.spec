@@ -1,5 +1,5 @@
 Name:		fprobe-ulog
-Version:	1.1
+Version:	1.1.1
 Release:	1
 Summary:	fprobe-ulog: a NetFlow probe
 Group:		Network/Monitoring
