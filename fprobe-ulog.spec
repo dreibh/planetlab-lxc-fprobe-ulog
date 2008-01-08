@@ -1,13 +1,29 @@
-Name:		fprobe-ulog
-Version:	1.1.1
-Release:	1
+#
+# $Id$
+#
+%define url $URL$
+
+%define name fprobe-ulog
+%define version 1.1.1
+%define taglevel 1
+
+%define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
+
 Summary:	fprobe-ulog: a NetFlow probe
+Name: %{name}
+Version: %{version}
+Release: %{release}
 Group:		Network/Monitoring
 License:	GPL
-URL:		http://fprobe.sourceforge.net
+#URL:		http://fprobe.sourceforge.net
 Source0:	%{name}-%{version}.tar.bz2
 Buildroot:	%{_tmppath}/%{name}-buildroot
 Provides:	fprobe-ulog
+
+Vendor: PlanetLab
+Packager: PlanetLab Central <support@planet-lab.org>
+Distribution: PlanetLab %{plrelease}
+URL: %(echo %{url} | cut -d ' ' -f 2)
 
 %description
 fprobe-ulog - libipulog-based tool that collect network traffic data and emit
