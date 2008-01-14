@@ -1,5 +1,5 @@
 Name:		fprobe-ulog
-Version:	1.1.1
+Version:	1.1.2
 Release:	1
 Summary:	fprobe-ulog: a NetFlow probe
 Group:		Network/Monitoring
@@ -11,7 +11,7 @@ Provides:	fprobe-ulog
 
 %description
 fprobe-ulog - libipulog-based tool that collect network traffic data and emit
-it as NetFlow flows towards the specified collector. PlanetLab vesion.
+it as NetFlow flows towards the specified collector. PlanetLab version.
 
 %prep
 %setup -q
