@@ -1285,7 +1285,7 @@ static int init_daemon() {
      3. change the file creation permission 
   */
   setsid();
-  chdir("/root");
+  chdir("/usr/local/fprobe");
   umask(0);
 
   return(0);

@@ -38,6 +38,7 @@ rm -rf %{buildroot}
 %{_mandir}/man8/fprobe-ulog.8.gz
 
 %post
+mkdir -p /usr/local/fprobe
 chkconfig --add fprobe-ulog
 chkconfig fprobe-ulog on
 if [ "$PL_BOOTCD" != "1" ] ; then
