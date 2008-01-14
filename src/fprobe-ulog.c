@@ -6,10 +6,13 @@
 
 	$Id: fprobe-ulog.c,v 1.1.2.4 2005/01/30 09:06:19 sla Exp $
 
-	7/11/2007	Sapan Bhatia <sapanb@cs.princeton.edu> 
+			Sapan Bhatia <sapanb@cs.princeton.edu> 
 			
-		Added data collection (-f) functionality, xid support in the header and log file
-		rotation.
+	7/11/2007	Added data collection (-f) functionality, xid support in the header and log file
+			rotation.
+
+	15/11/2007	Added check to make sure fprobe doesn't overflow the disk. Also added a test facility.
+
 */
 
 #include <common.h>
@@ -31,7 +34,7 @@
 
 /* statfs() */
 
-#include <sys/statfs.h>
+#include <sys/vfs.h>
 
 #include <libipulog/libipulog.h>
 struct ipulog_handle {
@@ -91,6 +94,8 @@ struct ipulog_handle {
 #include <netflow.h>
 #include <hash.h>
 #include <mem.h>
+
+#define PIDFILE "/var/log/fprobe-ulog.pid"
 
 enum {
 	aflag,
@@ -422,19 +427,21 @@ unsigned get_log_fd(char *fname, int cur_fd) {
 	cur_uptime = getuptime_minutes(&now);
 
 
-	if (fstatfs(cur_fd, &statfs) && cur_fd!=START_VALUE) {
-		my_log(LOG_ERR, "PANIC! Can't stat disk to calculate free blocks");
-	}
-	else {
-		if (min_free && (statfs.f_bfree < min_free)) 
-			switch(cur_epoch) {
-				case 0: /* Uh oh. Our first file filled up all of the free space. Just bail out. */
-					my_log(LOG_ERR, "The first epoch filled up all the free space on disk. Bailing out.");
-					exit(1);
-				default:
-					my_log(LOG_INFO, "Disk almost full. I'm going to drop data. Max epochs = %d\n",cur_epoch);
-					cur_epoch = -1;
-			}
+	if (cur_fd!=START_VALUE) {
+		if (fstatfs(cur_fd, &statfs) == -1) {
+			my_log(LOG_ERR, "PANIC! Can't stat disk to calculate free blocks");
+		}
+		else {
+			if (min_free && (statfs.f_bavail < min_free)) 
+				switch(cur_epoch) {
+					case 0: /* Uh oh. Our first file filled up all of the free space. Just bail out. */
+						my_log(LOG_ERR, "The first epoch filled up all the free space on disk. Bailing out.");
+						exit(1);
+					default:
+						my_log(LOG_INFO, "Disk almost full (%u free blocks). I'm going to drop data. Max epochs = %d\n",statfs.f_bavail,cur_epoch);
+						cur_epoch = -1;
+				}
+		}
 	}
 
 	/* Epoch length in minutes */
@@ -1244,6 +1251,44 @@ void *cap_thread()
 	return 0;
 }
 
+/* Copied out of CoDemux */
+
+static int init_daemon() {
+  pid_t pid;
+  FILE *pidfile;
+
+  pidfile = fopen(PIDFILE, "w");
+  if (pidfile == NULL) {
+    my_log(LOG_ERR, "%s creation failed\n", PIDFILE);
+  }
+
+  if ((pid = fork()) < 0) {
+    fclose(pidfile);
+    my_log(LOG_ERR, "Could not fork!\n");
+    return(-1);
+  }
+  else if (pid != 0) {
+    /* i'm the parent, writing down the child pid  */
+    fprintf(pidfile, "%u\n", pid);
+    fclose(pidfile);
+    exit(0);
+  }
+
+  /* close the pid file */
+  fclose(pidfile);
+
+  /* routines for any daemon process
+     1. create a new session 
+     2. change directory to the root
+     3. change the file creation permission 
+  */
+  setsid();
+  chdir("/root");
+  umask(0);
+
+  return(0);
+}
+
 int main(int argc, char **argv)
 {
 	char errpbuf[512];
@@ -1492,6 +1537,9 @@ bad_collector:
 	/* Daemonize (if log destination stdout-free) */
 
 	my_log_open(ident, verbosity, log_dest);
+
+	init_daemon();
+
 	if (!(log_dest & 2)) {
 		/* Crash-proofing - Sapan*/
 		while (1) {
