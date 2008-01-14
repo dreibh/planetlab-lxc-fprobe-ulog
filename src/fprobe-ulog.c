@@ -96,6 +96,7 @@ struct ipulog_handle {
 #include <mem.h>
 
 #define PIDFILE "/var/log/fprobe-ulog.pid"
+#define STD_NETFLOW_PDU
 
 enum {
 	aflag,

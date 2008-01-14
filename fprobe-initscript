@@ -34,7 +34,7 @@ case "$1" in
             rm -f $pidfile
         fi
 
-        /sbin/fprobe-ulog -M -E 60 -T 168 -f pf2 -q 1000 -s 30 -D 250000
+        /sbin/fprobe-ulog -M -e 3600 -d 3600 -E 60 -T 168 -f pf2 -q 1000 -s 30 -D 250000
 	sleep 1
 
         cmd=success

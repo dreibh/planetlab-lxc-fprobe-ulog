@@ -20,7 +20,7 @@
 #define MAX_DIGIT 5
 
 #define SCHED SCHED_FIFO
-#define EMIT_TIMEOUT 5
+#define EMIT_TIMEOUT 600
 #define UNPENDING_TIMEOUT 5
 #define CAPTURE_SIZE 131072
 #define THREADS 5
