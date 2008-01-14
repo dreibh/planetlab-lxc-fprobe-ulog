@@ -818,7 +818,9 @@ void *emit_thread()
 			p = fill(netflow->HeaderFields, netflow->HeaderFormat, 0, &emit_packet);
 			size = netflow->HeaderSize + emit_count * netflow->FlowSize;
 			/* Netflow PDUs need to be padded to 1464 bytes - Sapan */
+#ifdef STD_NETFLOW_PDU
 			if (size < NETFLOW_PDU_SIZE) size = NETFLOW_PDU_SIZE;
+#endif
 			peer_rot_cur = 0;
 			for (i = 0; i < npeers; i++) {
 				if (peers[i].type == PEER_FILE) {
