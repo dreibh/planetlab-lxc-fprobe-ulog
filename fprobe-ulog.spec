@@ -1,10 +1,24 @@
-Name:		fprobe-ulog
-Version:	1.1.2
-Release:	1
+#
+# $Id$
+#
+%define url $URL$
+
+# please keep these three lines as they are used by the tagging script
+# see build/module-tag.py for details
+%define name fprobe-ulog
+%define version 1.1.2
+%define taglevel 1
+
+%define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
+
+Name:		%{name}
+Version:	%{version}
+Release:	%{release}
 Summary:	fprobe-ulog: a NetFlow probe
 Group:		Network/Monitoring
 License:	GPL
-URL:		http://fprobe.sourceforge.net
+#URL:		http://fprobe.sourceforge.net
+URL: %(echo %{url} | cut -d ' ' -f 2)
 Source0:	%{name}-%{version}.tar.bz2
 Buildroot:	%{_tmppath}/%{name}-buildroot
 Provides:	fprobe-ulog
