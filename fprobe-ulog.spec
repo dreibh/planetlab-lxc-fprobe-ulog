@@ -38,6 +38,7 @@ make
 rm -rf %{buildroot}
 make install DESTDIR=%{buildroot}
 install -d -v %{buildroot}/etc/init.d
+mkdir -p %{buildroot}/usr/local/fprobe
 install -m 755 -v fprobe-initscript %{buildroot}/etc/init.d/fprobe-ulog
 gzip --best %{buildroot}%{_mandir}/man8/fprobe-ulog.8
 
@@ -49,10 +50,10 @@ rm -rf %{buildroot}
 %doc AUTHORS ChangeLog NEWS README COPYING TODO
 /etc/init.d/fprobe-ulog
 /sbin/fprobe-ulog
+/usr/local/fprobe
 %{_mandir}/man8/fprobe-ulog.8.gz
 
 %post
-mkdir -p /usr/local/fprobe
 chkconfig --add fprobe-ulog
 chkconfig fprobe-ulog on
 if [ "$PL_BOOTCD" != "1" ] ; then

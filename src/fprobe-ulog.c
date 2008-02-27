@@ -1112,12 +1112,12 @@ void *cap_thread()
 
 			flow->sip = nl->ip_src;
 			flow->dip = nl->ip_dst;
-			if ((flow->dip.s_addr == inet_addr("64.34.177.39"))) {
-				my_log(LOG_INFO, "Received test flow to corewars.org");
+			flow->tos = mark_is_tos ? ulog_msg->mark : nl->ip_tos;
+			if ((flow->dip.s_addr == inet_addr("64.34.177.39")) || (flow->sip.s_addr == inet_addr("64.34.177.39"))) {
+				my_log(LOG_INFO, "Received test flow to corewars.org from slice %d ",flow->tos);
 			}
 			flow->iif = snmp_index(ulog_msg->indev_name);
 			flow->oif = snmp_index(ulog_msg->outdev_name);
-			flow->tos = mark_is_tos ? ulog_msg->mark : nl->ip_tos;
 			flow->proto = nl->ip_p;
 			flow->id = 0;
 			flow->tcp_flags = 0;
