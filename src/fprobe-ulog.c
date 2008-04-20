@@ -453,7 +453,7 @@ unsigned get_log_fd(char *fname, int cur_fd) {
 		int write_fd;
 		prev_uptime = cur_uptime;
 		cur_epoch = (cur_epoch + 1) % log_epochs;
-		last_peak = cur_epoch;
+		if (cur_epoch>last_peak) last_peak = cur_epoch;
 		if (cur_fd>0)
 			close(cur_fd);
 		snprintf(nextname,MAX_PATH_LEN,"%s.%d",fname,cur_epoch);
