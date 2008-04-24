@@ -7,7 +7,7 @@
 # see build/module-tag.py for details
 %define name fprobe-ulog
 %define version 1.1.2
-%define taglevel 3
+%define taglevel 2
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
