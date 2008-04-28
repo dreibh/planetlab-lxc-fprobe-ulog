@@ -167,7 +167,7 @@ extern struct NetFlow NetFlow7;
 #define START_DATA_FD -5
 #define mark_is_tos parms[Mflag].count
 static unsigned scan_interval = 5;
-static int min_free = 0;
+static unsigned int min_free = 0;
 static int frag_lifetime = 30;
 static int inactive_lifetime = 60;
 static int active_lifetime = 300;
