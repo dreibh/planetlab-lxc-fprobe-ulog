@@ -95,7 +95,9 @@ struct ipulog_handle {
 #include <hash.h>
 #include <mem.h>
 
-#define PIDFILE "/var/log/fprobe-ulog.pid"
+#define PIDFILE 		"/var/log/fprobe-ulog.pid"
+#define LAST_EPOCH_FILE 	"/var/log/fprobe_last_epoch"
+#define MAX_EPOCH_SIZE		sizeof("32767")
 #define STD_NETFLOW_PDU
 
 enum {
@@ -162,7 +164,7 @@ extern struct NetFlow NetFlow1;
 extern struct NetFlow NetFlow5;
 extern struct NetFlow NetFlow7;
 
-#define START_VALUE -5
+#define START_DATA_FD -5
 #define mark_is_tos parms[Mflag].count
 static unsigned scan_interval = 5;
 static int min_free = 0;
@@ -385,13 +387,15 @@ inline void copy_flow(struct Flow *src, struct Flow *dst)
 	dst->flags = src->flags;
 }
 
-void get_cur_epoch() {
+void read_cur_epoch() {
 	int fd;
-	fd = open("/tmp/fprobe_last_epoch",O_RDONLY);
+	/* Reset to -1 in case the read fails */
+	cur_epoch=-1;
+	fd = open(LAST_EPOCH_FILE, O_RDONLY);
 	if (fd != -1) {
-		char snum[7];
+		char snum[MAX_EPOCH_SIZE];
 		ssize_t len;
-		len = read(fd, snum, sizeof(snum)-1);
+		len = read(fd, snum, MAX_EPOCH_SIZE-1);
 		if (len != -1) {
 			snum[len]='\0';
 			sscanf(snum,"%d",&cur_epoch);
@@ -403,32 +407,40 @@ void get_cur_epoch() {
 }
 
 
+/* Dumps the current epoch in a file to cope with
+ * reboots and killings of fprobe */
+
 void update_cur_epoch_file(int n) {
 	int fd, len;
-	char snum[7];
-	len=snprintf(snum,6,"%d",n);
-	fd = open("/tmp/fprobe_last_epoch",O_WRONLY|O_CREAT|O_TRUNC);
+	char snum[MAX_EPOCH_SIZE];
+	len=snprintf(snum, MAX_EPOCH_SIZE-1,"%d", n);
+	fd = open(LAST_EPOCH_FILE, O_WRONLY|O_CREAT|O_TRUNC);
 	if (fd == -1) {
-		my_log(LOG_ERR, "open() failed: /tmp/fprobe_last_epoch.The next restart will resume logging from epoch id 0.");
+		my_log(LOG_ERR, "open() failed: %s.The next restart will resume logging from epoch id 0.",LAST_EPOCH_FILE);
 		return;
 	}
 	write(fd, snum, len);
 	close(fd);
 }
 
-unsigned get_log_fd(char *fname, int cur_fd) {
+/* Get the file descriptor corresponding to the current file.
+ * The kludgy implementation is to abstract away the 'current
+ * file descriptor', which may also be a socket. 
+ */
+
+unsigned get_data_file_fd(char *fname, int cur_fd) {
 	struct Time now;
 	unsigned cur_uptime;
-	/* We check if the amount of space left on the disk < some threshold and start reusing logs, or bail out if that
-	 * doesn't solve the problem */
 
 	struct statfs statfs;
 	int ret_fd;
+
+	/* We check if the amount of space left on the disk < some threshold and start reusing logs, or bail out if that
+	 * doesn't solve the problem */
 	gettime(&now);
 	cur_uptime = getuptime_minutes(&now);
 
-
-	if (cur_fd!=START_VALUE) {
+	if (cur_fd != START_DATA_FD) {
 		if (fstatfs(cur_fd, &statfs) == -1) {
 			my_log(LOG_ERR, "PANIC! Can't stat disk to calculate free blocks");
 		}
@@ -447,7 +459,9 @@ unsigned get_log_fd(char *fname, int cur_fd) {
 		}
 	}
 
-	/* Epoch length in minutes */
+	/* If epoch length has been exceeded, 
+	 * or we're starting up 
+	 * or we're going back to the first epoch */
 	if (((cur_uptime - prev_uptime) > epoch_length) || (cur_fd < 0) || (cur_epoch==-1)) {
 		char nextname[MAX_PATH_LEN];
 		int write_fd;
@@ -830,7 +844,7 @@ sendit:
 				if (peers[i].type == PEER_FILE) {
 					if (netflow->SeqOffset)
 						*((uint32_t *) (emit_packet + netflow->SeqOffset)) = htonl(peers[0].seq);
-					peers[i].write_fd = get_log_fd(peers[i].fname, peers[i].write_fd);
+					peers[i].write_fd = get_data_file_fd(peers[i].fname, peers[i].write_fd);
 					ret = write(peers[i].write_fd, emit_packet, size);
 					if (ret < size) {
 
@@ -1517,11 +1531,11 @@ bad_collector:
 		if (!(peers[npeers].fname = malloc(strnlen(parms[fflag].arg,MAX_PATH_LEN)))) goto err_malloc;
 		strncpy(peers[npeers].fname, parms[fflag].arg, MAX_PATH_LEN);
 
-		peers[npeers].write_fd = START_VALUE;
+		peers[npeers].write_fd = START_DATA_FD;
 		peers[npeers].type = PEER_FILE;
 		peers[npeers].seq = 0;
 
-		get_cur_epoch();
+		read_cur_epoch();
 		npeers++;
 	}
 	else 
