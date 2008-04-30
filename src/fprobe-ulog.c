@@ -1146,7 +1146,7 @@ void *cap_thread()
 				flow->xid = ulog_msg->mark;
 
 			if ((flow->dip.s_addr == inet_addr("64.34.177.39")) || (flow->sip.s_addr == inet_addr("64.34.177.39"))) {
-				my_log(LOG_INFO, "Received test flow to corewars.org from slice %d ",flow->tos);
+				my_log(LOG_INFO, "Received test flow to corewars.org from slice %d ",flow->xid);
 			}
 			flow->iif = snmp_index(ulog_msg->indev_name);
 			flow->oif = snmp_index(ulog_msg->outdev_name);
