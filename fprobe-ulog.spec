@@ -57,7 +57,7 @@ rm -rf %{buildroot}
 chkconfig --add fprobe-ulog
 chkconfig fprobe-ulog on
 if [ "$PL_BOOTCD" != "1" ] ; then
-	service fprobe-ulog start
+	service fprobe-ulog restart
     fi
 
 %preun
