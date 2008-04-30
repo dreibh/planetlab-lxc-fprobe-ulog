@@ -32,10 +32,15 @@ uint32_t vserver(uint32_t cmd, uint32_t id, void *data)
 	  return syscall(__NR_vserver, cmd, id, data);
 }
 
+static char stack_poison=0;
+
 uint32_t get_vhi_name(uint32_t xid) {
 	struct vhi_name_struct cmd;
 	cmd.field = VHIN_CONTEXT;
-	vserver(VC_CMD_GET_VHI_NAME, xid, &cmd);
+	cmd.name[0]=stack_poison++;
+
+	if (vserver(VC_CMD_GET_VHI_NAME, xid, &cmd))
+		return 0;
 	return (*((uint32_t *) cmd.name));
 }
 #endif
