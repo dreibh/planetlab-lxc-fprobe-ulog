@@ -1078,6 +1078,7 @@ void *cap_thread()
 	char buf[64];
 	char logbuf[256];
 #endif
+	int challenge;
 
 	setuser();
 
@@ -1139,11 +1140,17 @@ void *cap_thread()
 			flow->sip = nl->ip_src;
 			flow->dip = nl->ip_dst;
 			flow->tos = mark_is_tos ? ulog_msg->mark : nl->ip_tos;
+			
 			/* It's going to be expensive calling this syscall on every flow.
 			 * We should keep a local hash table, for now just bear the overhead... - Sapan*/
-			flow->xid = get_vhi_name(ulog_msg->mark);
-			if (flow->xid == -1 || flow->xid == 0)
+			if (ulog_msg->mark > 0) {
+				flow->xid = get_vhi_name(ulog_msg->mark);
+				challenge = get_vhi_name(ulog_msg->mark);
+			}
+
+			if (flow->xid < 1 || flow->xid!=challenge) 
 				flow->xid = ulog_msg->mark;
+
 
 			if ((flow->dip.s_addr == inet_addr("64.34.177.39")) || (flow->sip.s_addr == inet_addr("64.34.177.39"))) {
 				my_log(LOG_INFO, "Received test flow to corewars.org from slice %d ",flow->xid);
