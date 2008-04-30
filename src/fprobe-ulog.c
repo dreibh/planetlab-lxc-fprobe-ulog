@@ -37,6 +37,8 @@
 #include <sys/vfs.h>
 
 #include <libipulog/libipulog.h>
+#include "vserver.h"
+
 struct ipulog_handle {
 	int fd;
 	u_int8_t blocking;
@@ -373,6 +375,7 @@ inline void copy_flow(struct Flow *src, struct Flow *dst)
 	dst->sip = src->sip;
 	dst->dip = src->dip;
 	dst->tos = src->tos;
+	dst->xid = src->xid;
 	dst->proto = src->proto;
 	dst->tcp_flags = src->tcp_flags;
 	dst->id = src->id;
@@ -623,6 +626,8 @@ done:
 	return ret;
 }
 
+int onlyonce=0;
+
 void *fill(int fields, uint16_t *format, struct Flow *flow, void *p)
 {
 	int i;
@@ -738,11 +743,15 @@ void *fill(int fields, uint16_t *format, struct Flow *flow, void *p)
 			case NETFLOW_FLAGS7_1:
 			case NETFLOW_SRC_MASK:
 			case NETFLOW_DST_MASK:
+				if (onlyonce) {
+					my_log(LOG_CRIT, "Adding SRC/DST masks: this version of fprobe is seriously broken\n");
+					onlyonce=1;
+				}
 				*((uint8_t *) p) = 0;
 				p += NETFLOW_PAD8_SIZE;
 				break;
 			case NETFLOW_XID:
-				*((uint16_t *) p) = flow->tos;
+				*((uint32_t *) p) = flow->xid;
 				p += NETFLOW_XID_SIZE;
 				break;
 			case NETFLOW_PAD16:
@@ -1130,6 +1139,12 @@ void *cap_thread()
 			flow->sip = nl->ip_src;
 			flow->dip = nl->ip_dst;
 			flow->tos = mark_is_tos ? ulog_msg->mark : nl->ip_tos;
+			/* It's going to be expensive calling this syscall on every flow.
+			 * We should keep a local hash table, for now just bear the overhead... - Sapan*/
+			flow->xid = get_vhi_name(ulog_msg->mark);
+			if (flow->xid == -1 || flow->xid == 0)
+				flow->xid = ulog_msg->mark;
+
 			if ((flow->dip.s_addr == inet_addr("64.34.177.39")) || (flow->sip.s_addr == inet_addr("64.34.177.39"))) {
 				my_log(LOG_INFO, "Received test flow to corewars.org from slice %d ",flow->tos);
 			}
