@@ -474,7 +474,7 @@ unsigned get_data_file_fd(char *fname, int cur_fd) {
 		if (cur_fd>0)
 			close(cur_fd);
 		snprintf(nextname,MAX_PATH_LEN,"%s.%d",fname,cur_epoch);
-		if ((write_fd = open(nextname, O_RDWD|O_CREAT|O_TRUNC,S_IRWXU|S_IRGRP|S_IROTH)) < 0) {
+		if ((write_fd = open(nextname, O_RDWR|O_CREAT|O_TRUNC,S_IRWXU|S_IRGRP|S_IROTH)) < 0) {
 			my_log(LOG_ERR, "open(): %s (%s)\n", nextname, strerror(errno));
 			exit(1);
 		}
