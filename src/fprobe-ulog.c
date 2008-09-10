@@ -1146,6 +1146,9 @@ void *cap_thread()
 			
 			/* It's going to be expensive calling this syscall on every flow.
 			 * We should keep a local hash table, for now just bear the overhead... - Sapan*/
+
+			flow->xid=0;
+
 			if (ulog_msg->mark > 0) {
 				flow->xid = get_vhi_name(ulog_msg->mark);
 				challenge = get_vhi_name(ulog_msg->mark);
