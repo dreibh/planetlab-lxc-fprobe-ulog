@@ -7,7 +7,7 @@
 # see build/module-tag.py for details
 %define name fprobe-ulog
 %define version 1.1.2
-%define taglevel 4
+%define taglevel 5
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -72,6 +72,9 @@ fi
 
 
 %changelog
+* Wed Sep 10 2008 Sapan Bhatia <sapanb@cs.princeton.edu> - fprobe-ulog-1.1.2-5
+- Bug fix, although not major.
+
 * Tue Jul 01 2008 Sapan Bhatia <sapanb@cs.princeton.edu> - fprobe-ulog-1.1.2-4
 - This change is required for PlanetFlow data collection on PLE. It makes fprobe data accessible to non-root users such
 - as pl[e]_netflow.
