@@ -7,7 +7,7 @@
 # see build/module-tag.py for details
 %define name fprobe-ulog
 %define version 1.1.2
-%define taglevel 5
+%define taglevel 6
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -72,6 +72,9 @@ fi
 
 
 %changelog
+* Sun Sep 14 2008 Sapan Bhatia <sapanb@cs.princeton.edu> - fprobe-ulog-1.1.2-6
+- Codemux support: react to changes in the xid of a connection to update the corresponding flow record.
+
 * Wed Sep 10 2008 Sapan Bhatia <sapanb@cs.princeton.edu> - fprobe-ulog-1.1.2-5
 - Bug fix, although not major.
 
