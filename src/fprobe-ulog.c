@@ -583,6 +583,15 @@ done:
 		flown->tcp_flags |= flow->tcp_flags;
 		flown->size += flow->size;
 		flown->pkts += flow->pkts;
+
+		/* The xid of the first xid of a flow is misleading. Reset the xid of the flow
+		 * if a better value comes along. A good example of this is that by the time CoDemux sets the
+		 * peercred of a flow, it has already been accounted for here and attributed to root. */
+
+		if (flown->xid<1)
+				flown->xid = flow->xid;
+
+
 		if (flow->flags & FLOW_FRAG) {
 			/* Fragmented flow require some additional work */
 			if (flow->flags & FLOW_TL) {
@@ -647,7 +656,7 @@ void *fill(int fields, uint16_t *format, struct Flow *flow, void *p)
 
 			case NETFLOW_IPV4_DST_ADDR:
 				((struct in_addr *) p)->s_addr = flow->dip.s_addr;
-				if ((flow->dip.s_addr == inet_addr("64.34.177.39"))) {
+				if ((flow->dip.s_addr == inet_addr("10.0.0.8"))) {
 					my_log(LOG_INFO, "Created records for test flow. No. of packets=%d",flow->pkts);
 				}
 				p += NETFLOW_IPV4_DST_ADDR_SIZE;
@@ -1158,7 +1167,7 @@ void *cap_thread()
 				flow->xid = ulog_msg->mark;
 
 
-			if ((flow->dip.s_addr == inet_addr("64.34.177.39")) || (flow->sip.s_addr == inet_addr("64.34.177.39"))) {
+			if ((flow->dip.s_addr == inet_addr("10.0.0.8")) || (flow->sip.s_addr == inet_addr("10.0.0.8"))) {
 				my_log(LOG_INFO, "Received test flow to corewars.org from slice %d ",flow->xid);
 			}
 			flow->iif = snmp_index(ulog_msg->indev_name);
