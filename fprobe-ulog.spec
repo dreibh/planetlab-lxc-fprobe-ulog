@@ -55,10 +55,9 @@ rm -rf %{buildroot}
 
 %post
 chkconfig --add fprobe-ulog
-chkconfig fprobe-ulog on
 if [ "$PL_BOOTCD" != "1" ] ; then
-	service fprobe-ulog restart
-    fi
+    service fprobe-ulog condrestart
+fi
 
 %preun
 # 0 = erase, 1 = upgrade
@@ -66,7 +65,6 @@ if [ "$1" -eq 0 ]; then
     if [ "$PL_BOOTCD" != "1" ] ; then
 	service fprobe-ulog stop
     fi
-    chkconfig fprobe-ulog off
     chkconfig --del fprobe-ulog
 fi
 

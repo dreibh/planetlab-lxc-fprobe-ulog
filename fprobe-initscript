@@ -63,6 +63,15 @@ case "$1" in
             echo 'not running' && exit 1
         ;;
 
+    condrestart)
+        if check_status; then
+	    $0 restart
+	    RETVAL=$?
+	else
+	    RETVAL=0
+	fi
+	;;
+
     *)
         echo "Usage: $0 {start|stop|restart|status}"
         RETVAL=1
