@@ -1,46 +1,84 @@
 #ifndef __VSERVER_H__
 #define __VSERVER_H__
 
-#define __NR_vserver 273
-
-#include <sys/syscall.h>
+#include <pwd.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <errno.h>
+#include <stdio.h>
+#include <string.h>
 
-#define VC_CMD(c, i, v)         (((c & 0x3F) << 24) \
-	                                | (((i) & 0xFF) << 16) | ((v) & 0xFFF))
-#define VC_CMD_GET_VHI_NAME 	VC_CMD(2,2,0)
+#define VSERVER_CONFIG_PATH "/etc/vservers"
+#define SLICE_ID_FILE       "slice_id"
 
-struct vhi_name_struct {
-        uint32_t field;
-        char name[65];
+char* get_current_username (unsigned int uid)
+{
+    struct passwd *passwd_entry;
+    if ((passwd_entry = getpwuid(uid)) == NULL) {
+        fprintf(stderr, "Could not look up user record for %d\n", uid);
+        return NULL; 
+    }
+
+    return (strdup(passwd_entry->pw_name));
+}
+
+#define HASH_SIZE           (1<<12)
+#define HASH_TABLE_MASK     (HASH_SIZE - 1)
+
+struct hash_entry {
+    unsigned int xid;
+    uint32_t slice_id;
 };
 
-enum vhi_name_field {
-        VHIN_CONTEXT=0,
-        VHIN_SYSNAME,
-        VHIN_NODENAME,
-        VHIN_RELEASE,
-        VHIN_VERSION,
-        VHIN_MACHINE,
-        VHIN_DOMAINNAME,
-};	
+struct hash_entry slice_id_hash[HASH_SIZE];
 
-uint32_t vserver(uint32_t cmd, uint32_t id, void *data)
-{
-	  return syscall(__NR_vserver, cmd, id, data);
+void set_hash_entry(unsigned int xid, uint32_t slice_id) {
+    int idx = xid & HASH_TABLE_MASK;
+    int i;
+    for (i = idx;i!=idx;i=(i+1) & HASH_TABLE_MASK) {
+        struct hash_entry *entry = &slice_id_hash[i];
+        if (entry->xid == 0 || entry->xid == xid) {
+            entry->xid = slice_id;
+            break;
+        }
+    }
 }
 
-static char stack_poison=0;
-
-uint32_t get_vhi_name(uint32_t xid) {
-	struct vhi_name_struct cmd;
-	cmd.field = VHIN_CONTEXT;
-	cmd.name[0]=stack_poison++;
-
-	if (vserver(VC_CMD_GET_VHI_NAME, xid, &cmd))
-		return 0;
-	return (*((uint32_t *) cmd.name));
+uint32_t xid_to_slice_id_slow(unsigned int xid) {
+    uint32_t slice_id;
+    char *slice_name = get_current_username (xid);
+    char *slice_path = (char *) malloc(sizeof(VSERVER_CONFIG_PATH) + strlen(slice_name) + sizeof(SLICE_ID_FILE) + sizeof("//"));
+    sprintf(slice_path,"%s/%s/%s",VSERVER_CONFIG_PATH,slice_name,SLICE_ID_FILE);
+    FILE *fp = fopen(slice_path, "r");
+    if (fp) {
+        fscanf(fp,"%u",&slice_id);
+        set_hash_entry(xid, slice_id);
+    }
+    fclose(fp);
+    return slice_id;
 }
+
+uint32_t xid_to_slice_id_fast(unsigned int xid) {
+    int idx = xid & HASH_TABLE_MASK;
+    int i;
+    uint32_t slice_id;
+    for (i = idx;i!=idx;i=(i+1) & HASH_TABLE_MASK) {
+        struct hash_entry *entry = &slice_id_hash[i];
+        if (entry->xid == xid) {
+            entry->xid = slice_id;
+            break;
+        }
+    }
+    
+}
+
+uint32_t xid_to_slice_id(unsigned int xid) {
+    uint32_t slice_id;
+    if (xid == 0)
+        return 0;
+    else if ((slice_id = xid_to_slice_id_fast(xid)) != 0)
+        return slice_id;
+    else
+        return xid_to_slice_id_slow(xid);
+}
+
 #endif
