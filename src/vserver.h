@@ -31,13 +31,25 @@ struct hash_entry {
 
 struct hash_entry slice_id_hash[HASH_SIZE];
 
+void init_hash() {
+    memset(slice_id_hash, 0, HASH_SIZE);
+}
 void set_hash_entry(unsigned int xid, uint32_t slice_id) {
     int idx = xid & HASH_TABLE_MASK;
     int i;
-    for (i = idx;i!=idx;i=(i+1) & HASH_TABLE_MASK) {
-        struct hash_entry *entry = &slice_id_hash[i];
+
+    struct hash_entry *entry = &slice_id_hash[idx];
+    if (entry->xid == 0 || entry->xid ==xid) {
+        entry->slice_id = slice_id;
+        entry->xid = xid;
+        return;
+    }
+
+    for (i = idx+1;i!=idx;i=(i+1) & HASH_TABLE_MASK) {
+        entry = &slice_id_hash[i];
         if (entry->xid == 0 || entry->xid == xid) {
-            entry->xid = slice_id;
+            entry->slice_id = slice_id;
+            entry->xid = xid;
             break;
         }
     }
@@ -62,15 +74,21 @@ uint32_t xid_to_slice_id_slow(unsigned int xid) {
 uint32_t xid_to_slice_id_fast(unsigned int xid) {
     int idx = xid & HASH_TABLE_MASK;
     int i;
-    uint32_t slice_id;
-    for (i = idx;i!=idx;i=(i+1) & HASH_TABLE_MASK) {
-        struct hash_entry *entry = &slice_id_hash[i];
+    uint32_t slice_id = 0;
+
+    struct hash_entry *entry = &slice_id_hash[idx];
+    if (entry->xid == xid)
+        return entry->slice_id;
+
+    for (i = idx+1;i!=idx;i=(i+1) & HASH_TABLE_MASK) {
+        entry = &slice_id_hash[i];
         if (entry->xid == xid) {
-            entry->xid = slice_id;
+            slice_id = entry->slice_id;
             break;
         }
     }
-    
+
+    return slice_id;
 }
 
 uint32_t xid_to_slice_id(unsigned int xid) {
@@ -82,5 +100,6 @@ uint32_t xid_to_slice_id(unsigned int xid) {
     else
         return xid_to_slice_id_slow(xid);
 }
+
 
 #endif
