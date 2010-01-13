@@ -31,7 +31,7 @@ struct hash_entry {
 
 struct hash_entry slice_id_hash[HASH_SIZE];
 
-void init_hash() {
+void init_slice_id_hash() {
     memset(slice_id_hash, 0, HASH_SIZE);
 }
 void set_hash_entry(unsigned int xid, uint32_t slice_id) {

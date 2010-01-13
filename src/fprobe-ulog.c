@@ -1627,6 +1627,7 @@ bad_collector:
 
 	/* Initialization */
 
+    init_slice_id_hash();
 	hash_init(); /* Actually for crc16 only */
 	mem_init(sizeof(struct Flow), bulk_quantity, memory_limit);
 	for (i = 0; i < 1 << HASH_BITS; i++) pthread_mutex_init(&flows_mutex[i], 0);
