@@ -53,6 +53,8 @@ uint32_t xid_to_slice_id_slow(unsigned int xid) {
         fscanf(fp,"%u",&slice_id);
         set_hash_entry(xid, slice_id);
     }
+    else
+        slice_id = xid; // Let's leave some evidence behind, even if it's imperfect.
     fclose(fp);
     return slice_id;
 }

@@ -1159,8 +1159,8 @@ void *cap_thread()
 			flow->xid=0;
 
 			if (ulog_msg->mark > 0) {
-				flow->xid = get_vhi_name(ulog_msg->mark);
-				challenge = get_vhi_name(ulog_msg->mark);
+                /* flow->xid is really the slice id :-/ */
+				flow->xid = xid_to_slice_id(ulog_msg->mark);
 			}
 
 			if (flow->xid < 1 || flow->xid!=challenge) 
