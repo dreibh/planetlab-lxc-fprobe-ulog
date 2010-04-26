@@ -53,7 +53,7 @@ struct Flow {
 	/* ip ToS */
 	uint16_t tos;
 	/* user credentials */
-	int xid;
+	int slice_id;
 	/* tcp flags */
 	uint8_t tcp_flags;
 	/* number of packets */

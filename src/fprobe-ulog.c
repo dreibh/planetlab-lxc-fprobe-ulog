@@ -8,7 +8,7 @@
 
 			Sapan Bhatia <sapanb@cs.princeton.edu> 
 			
-	7/11/2007	Added data collection (-f) functionality, xid support in the header and log file
+	7/11/2007	Added data collection (-f) functionality, slice_id support in the header and log file
 			rotation.
 
 	15/11/2007	Added check to make sure fprobe doesn't overflow the disk. Also added a test facility.
@@ -375,7 +375,7 @@ inline void copy_flow(struct Flow *src, struct Flow *dst)
 	dst->sip = src->sip;
 	dst->dip = src->dip;
 	dst->tos = src->tos;
-	dst->xid = src->xid;
+	dst->slice_id = src->slice_id;
 	dst->proto = src->proto;
 	dst->tcp_flags = src->tcp_flags;
 	dst->id = src->id;
@@ -584,12 +584,12 @@ done:
 		flown->size += flow->size;
 		flown->pkts += flow->pkts;
 
-		/* The xid of the first xid of a flow is misleading. Reset the xid of the flow
+		/* The slice_id of the first slice_id of a flow is misleading. Reset the slice_id of the flow
 		 * if a better value comes along. A good example of this is that by the time CoDemux sets the
 		 * peercred of a flow, it has already been accounted for here and attributed to root. */
 
-		if (flown->xid<1)
-				flown->xid = flow->xid;
+		if (flown->slice_id<1)
+				flown->slice_id = flow->slice_id;
 
 
 		if (flow->flags & FLOW_FRAG) {
@@ -762,9 +762,9 @@ void *fill(int fields, uint16_t *format, struct Flow *flow, void *p)
 				*((uint8_t *) p) = 0;
 				p += NETFLOW_PAD8_SIZE;
 				break;
-			case NETFLOW_XID:
-				*((uint32_t *) p) = flow->xid;
-				p += NETFLOW_XID_SIZE;
+			case NETFLOW_SLICE_ID:
+				*((uint32_t *) p) = flow->slice_id;
+				p += NETFLOW_SLICE_ID_SIZE;
 				break;
 			case NETFLOW_PAD16:
 				/* Unsupported (uint16_t) */
@@ -1156,19 +1156,18 @@ void *cap_thread()
 			/* It's going to be expensive calling this syscall on every flow.
 			 * We should keep a local hash table, for now just bear the overhead... - Sapan*/
 
-			flow->xid=0;
+			flow->slice_id=0;
 
 			if (ulog_msg->mark > 0) {
-                /* flow->xid is really the slice id :-/ */
-				flow->xid = xid_to_slice_id(ulog_msg->mark);
+				flow->slice_id = xid_to_slice_id(ulog_msg->mark);
 			}
 
-			if (flow->xid < 1 || flow->xid!=challenge) 
-				flow->xid = ulog_msg->mark;
+			if (flow->slice_id < 1)
+				flow->slice_id = ulog_msg->mark; // Couldn't look up the slice id, let's at least store the local xid
 
 
 			if ((flow->dip.s_addr == inet_addr("10.0.0.8")) || (flow->sip.s_addr == inet_addr("10.0.0.8"))) {
-				my_log(LOG_INFO, "Received test flow to corewars.org from slice %d ",flow->xid);
+				my_log(LOG_INFO, "Received test flow to corewars.org from slice %d ",flow->slice_id);
 			}
 			flow->iif = snmp_index(ulog_msg->indev_name);
 			flow->oif = snmp_index(ulog_msg->outdev_name);

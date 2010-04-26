@@ -69,7 +69,7 @@ static uint16_t NetFlow5_Flow[] = {
 	NETFLOW_SRC_TOS,
 	NETFLOW_SRC_AS,
 	NETFLOW_DST_AS,
-	NETFLOW_XID
+	NETFLOW_SLICE_ID
 	/*
 	 * Who needs the src and dst masks... Or deal
 	 * with this later - Sapan
