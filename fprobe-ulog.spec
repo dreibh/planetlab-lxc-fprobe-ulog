@@ -7,7 +7,7 @@
 # see build/module-tag.py for details
 %define name fprobe-ulog
 %define version 1.1.3
-%define taglevel 1
+%define taglevel 2
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -70,6 +70,10 @@ fi
 
 
 %changelog
+* Mon Apr 26 2010 Sapan Bhatia <sapanb@cs.princeton.edu> - fprobe-ulog-1.1.3-2
+- This version uses the new location of the slice id field in /etc/vservers/vserver_name/<slice_id>. Needs Node Manager
+- 2.0-6 and higher to function.
+
 * Fri Nov 06 2009 Daniel Hokka Zakrisson <daniel@hozac.com> - fprobe-ulog-1.1.3-1
 - Proper initscript semantics.
 
