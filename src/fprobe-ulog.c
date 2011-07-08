@@ -825,8 +825,6 @@ void *emit_thread()
 
 	setuser();
         
-    //pthread_mutexattr_setprotocol(&md->MutexAttr,PTHREAD_PRIO_INHERIT);
-
 	for (;;) {
 		pthread_mutex_lock(&emit_mutex);
 		while (!flows_emit) {
@@ -834,7 +832,7 @@ void *emit_thread()
 			timeout.tv_sec = now.tv_sec + emit_timeout;
 			/* Do not wait until emit_packet will filled - it may be too long */
 			if (pthread_cond_timedwait(&emit_cond, &emit_mutex, &timeout) && emit_count) {
-                my_log(LOG_INFO,"Timeout: %d, %d",emit_count, timeout.tv_sec);
+                //my_log(LOG_INFO,"Timeout: %d, %d",emit_count, timeout.tv_sec);
 				pthread_mutex_unlock(&emit_mutex);
 				goto sendit;
 			}
