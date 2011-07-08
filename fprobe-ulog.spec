@@ -7,7 +7,7 @@
 # see build/module-tag.py for details
 %define name fprobe-ulog
 %define version 1.1.3
-%define taglevel 2
+%define taglevel 3
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -70,6 +70,9 @@ fi
 
 
 %changelog
+* Fri Jul 08 2011 Sapan Bhatia <sapanb@cs.princeton.edu> - fprobe-ulog-1.1.3-3
+- This changeset makes fprobe compress the data it collects.
+
 * Mon Apr 26 2010 Sapan Bhatia <sapanb@cs.princeton.edu> - fprobe-ulog-1.1.3-2
 - This version uses the new location of the slice id field in /etc/vservers/vserver_name/<slice_id>. Needs Node Manager
 - 2.0-6 and higher to function.
