@@ -479,7 +479,7 @@ unsigned get_data_file_fd(char *fname, int cur_fd) {
             system(gzip_cmd);
         }
 		snprintf(cur_output_file,MAX_PATH_LEN,"%s.%d",fname,cur_epoch);
-		if ((write_fd = open(cur_output_file, O_RDWR|O_CREAT|O_TRUNC)) < 0) {
+		if ((write_fd = open(cur_output_file, O_RDWR|O_CREAT|O_TRUNC,S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH)) < 0) {
 			my_log(LOG_ERR, "open(): %s (%s)\n", cur_output_file, strerror(errno));
 			exit(1);
 		}
