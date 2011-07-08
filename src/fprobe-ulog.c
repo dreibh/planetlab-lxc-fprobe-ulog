@@ -418,7 +418,7 @@ void update_cur_epoch_file(int n) {
 	int fd, len;
 	char snum[MAX_EPOCH_SIZE];
 	len=snprintf(snum, MAX_EPOCH_SIZE-1,"%d", n);
-	fd = open(LAST_EPOCH_FILE, O_RDWR|O_CREAT|O_TRUNC);
+	fd = open(LAST_EPOCH_FILE, O_RDWR|O_CREAT|O_TRUNC,S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH);
 	if (fd == -1) {
 		my_log(LOG_ERR, "open() failed: %s.The next restart will resume logging from epoch id 0.",LAST_EPOCH_FILE);
 		return;
