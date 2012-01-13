@@ -37,7 +37,7 @@
 #include <sys/vfs.h>
 
 #include <libipulog/libipulog.h>
-#include "vserver.h"
+/* #include "vserver.h" */
 
 struct ipulog_handle {
 	int fd;
@@ -1162,14 +1162,10 @@ void *cap_thread()
 			/* It's going to be expensive calling this syscall on every flow.
 			 * We should keep a local hash table, for now just bear the overhead... - Sapan*/
 
-			flow->slice_id=0;
+			flow->slice_id = ulog_msg->mark;
 
-			if (ulog_msg->mark > 0) {
-				flow->slice_id = xid_to_slice_id(ulog_msg->mark);
-			}
-
-			if (flow->slice_id < 1)
-				flow->slice_id = ulog_msg->mark; // Couldn't look up the slice id, let's at least store the local xid
+			/*if (flow->slice_id < 1)
+				flow->slice_id = ulog_msg->mark; // Couldn't look up the slice id, let's at least store the local xid*/
 
 
 			if ((flow->dip.s_addr == inet_addr("10.0.0.8")) || (flow->sip.s_addr == inet_addr("10.0.0.8"))) {
@@ -1632,7 +1628,7 @@ bad_collector:
 
 	/* Initialization */
 
-    init_slice_id_hash();
+    // init_slice_id_hash();
 	hash_init(); /* Actually for crc16 only */
 	mem_init(sizeof(struct Flow), bulk_quantity, memory_limit);
 	for (i = 0; i < 1 << HASH_BITS; i++) pthread_mutex_init(&flows_mutex[i], 0);
