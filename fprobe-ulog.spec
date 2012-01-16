@@ -6,8 +6,8 @@
 # please keep these three lines as they are used by the tagging script
 # see build/module-tag.py for details
 %define name fprobe-ulog
-%define version 1.1.3
-%define taglevel 3
+%define version 1.1.4
+%define taglevel 1
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
