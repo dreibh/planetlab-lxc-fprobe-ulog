@@ -831,7 +831,10 @@ void *emit_thread()
 			gettimeofday(&now, 0);
 			timeout.tv_sec = now.tv_sec + emit_timeout;
 			/* Do not wait until emit_packet will filled - it may be too long */
-			if (pthread_cond_timedwait(&emit_cond, &emit_mutex, &timeout) && emit_count) {
+            int res=-1;
+            while ((res=pthread_cond_timedwait(&emit_cond, &emit_mutex, &timeout))==-1) continue;
+
+			if (res && emit_count) {
                 //my_log(LOG_INFO,"Timeout: %d, %d",emit_count, timeout.tv_sec);
 				pthread_mutex_unlock(&emit_mutex);
 				goto sendit;
@@ -964,7 +967,8 @@ void *unpending_thread()
 		while (!(pending_tail->flags & FLOW_PENDING)) {
 			gettimeofday(&now, 0);
 			timeout.tv_sec = now.tv_sec + unpending_timeout;
-			pthread_cond_timedwait(&unpending_cond, &unpending_mutex, &timeout);
+			while (pthread_cond_timedwait(&unpending_cond, &unpending_mutex, &timeout)==-1)
+                continue;
 		}
 
 #if ((DEBUG) & (DEBUG_S | DEBUG_U))
@@ -1010,7 +1014,8 @@ void *scan_thread()
 	for (;;) {
 		gettime(&now);
 		timeout.tv_sec = now.sec + scan_interval;
-		pthread_cond_timedwait(&scan_cond, &scan_mutex, &timeout);
+		while (pthread_cond_timedwait(&scan_cond, &scan_mutex, &timeout)==-1)
+            continue;
 
 		gettime(&now);
 #if ((DEBUG) & DEBUG_S)
