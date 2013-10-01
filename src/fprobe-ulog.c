@@ -1505,7 +1505,7 @@ bad_lhost:
 	/* Process collectors parameters. Brrrr... :-[ */
 
 	npeers = argc - optind;
-	if (npeers > 1) {
+	if (npeers >= 1) {
 		/* Send to remote Netflow collector */
 		if (!(peers = malloc(npeers * sizeof(struct peer)))) goto err_malloc;
 		for (i = optind, npeers = 0; i < argc; i++, npeers++) {
@@ -1570,10 +1570,8 @@ bad_collector:
 	}
 	else if (parms[fflag].count) {
 		// log into a file
-		if (!(peers = malloc(npeers * sizeof(struct peer)))) goto err_malloc;
-		if (!(peers[npeers].fname = malloc(strnlen(parms[fflag].arg,MAX_PATH_LEN)))) goto err_malloc;
-		strncpy(peers[npeers].fname, parms[fflag].arg, MAX_PATH_LEN);
-
+		if (!(peers = malloc(sizeof(struct peer)))) goto err_malloc;
+		if (!(peers[npeers].fname = strndup(parms[fflag].arg, MAX_PATH_LEN))) goto err_malloc;
 		peers[npeers].write_fd = START_DATA_FD;
 		peers[npeers].type = PEER_FILE;
 		peers[npeers].seq = 0;
