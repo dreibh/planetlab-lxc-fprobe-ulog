@@ -7,7 +7,7 @@
 # see build/module-tag.py for details
 %define name fprobe-ulog
 %define version 1.1.4
-%define taglevel 2
+%define taglevel 3
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -70,6 +70,9 @@ fi
 
 
 %changelog
+* Tue Oct 01 2013 Andy Bavier <acb@cs.princeton.edu> - fprobe-ulog-1.1.4-3
+- Bug fixes.
+
 * Thu May 10 2012 Sapan Bhatia <sapanb@cs.princeton.edu> - fprobe-ulog-1.1.4-2
 - Resolves a crash due to a kernel issue
 
