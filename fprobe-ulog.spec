@@ -6,10 +6,34 @@
 # please keep these three lines as they are used by the tagging script
 # see build/module-tag.py for details
 %define name fprobe-ulog
-%define version 1.1.4
+%define version 1.1.5
 %define taglevel 3
 
-%define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
+### legacy from locally-built kernels, used to define these
+# kernel_release : 1.fc16  (24 is then the planetlab taglevel)
+# kernel_version : 3.3.7
+# kernel_arch :    i686 | x86_64
+
+# when no custom kernel is being built, kernel_version is defined but empty
+%define _with_planetlab_kernel %{?kernel_version:1}%{!?kernel_version:0}
+%if ! %{_with_planetlab_kernel}
+# compute this with "rpm -q --qf .. kernel-devel" when with the stock kernel
+# this line below
+#%define module_release %( rpm -q --qf "%{version}" kernel-headers )
+# causes recursive macro definition no matter how much you quote
+%define percent %
+%define braop \{
+%define bracl \}
+%define kernel_version %( rpm -q --qf %{percent}%{braop}version%{bracl} kernel-headers )
+%define kernel_release %( rpm -q --qf %{percent}%{braop}release%{bracl} kernel-headers )
+%define kernel_arch %( rpm -q --qf %{percent}%{braop}arch%{bracl} kernel-headers )
+%endif
+
+# this is getting really a lot of stuff, could be made simpler probably
+%define release %{kernel_version}.%{kernel_release}.%{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
+
+%define kernel_id %{kernel_version}-%{kernel_release}.%{kernel_arch}
+%define kernelpath /usr/src/kernels/%{kernel_id}
 
 Name:		%{name}
 Version:	%{version}
@@ -31,7 +55,7 @@ it as NetFlow flows towards the specified collector. PlanetLab version.
 %setup -q
 
 %build
-./configure --sbindir=/sbin --mandir=%{_mandir} --enable-uptime_trick=no $EXTRA_OPTIONS
+env CFLAGS=-I%{kernelpath}/include ./configure --sbindir=/sbin --mandir=%{_mandir} --enable-uptime_trick=no $EXTRA_OPTIONS
 make
 
 %install
